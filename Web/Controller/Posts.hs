@@ -68,6 +68,7 @@ buildPost post = post
     |> validateField #title nonEmpty
     |> validateField #body nonEmpty
     |> validateField #body isMarkdown
+    |> attachFailure #comments "Invalid comments!"
 
 isMarkdown :: Text -> ValidatorResult
 isMarkdown text =
