@@ -15,7 +15,8 @@ instance Controller PostsController where
         render IndexView { .. }
 
     action NewPostAction = do
-        let post = newRecord
+        let post = newRecord @Post
+        post <- post |> fetchRelated #comments
         render NewView { .. }
 
     action ShowPostAction { postId } = do
@@ -26,6 +27,7 @@ instance Controller PostsController where
 
     action EditPostAction { postId } = do
         post <- fetch postId
+            >>= fetchRelated #comments
         render EditView { .. }
 
     action UpdatePostAction { postId } = do
@@ -33,9 +35,12 @@ instance Controller PostsController where
         post
             |> buildPost
             |> ifValid \case
-                Left post -> render EditView { .. }
+                Left post -> do
+                    post <- post |> fetchRelated #comments
+                    render EditView { .. }
                 Right post -> do
                     post <- post |> updateRecord
+                        >>= fetchRelated #comments
                     setSuccessMessage "Post updated"
                     redirectTo EditPostAction { .. }
 
@@ -44,7 +49,9 @@ instance Controller PostsController where
         post
             |> buildPost
             |> ifValid \case
-                Left post -> render NewView { .. } 
+                Left post -> do
+                    post <- post |> fetchRelated #comments
+                    render NewView { .. }
                 Right post -> do
                     post <- post |> createRecord
                     setSuccessMessage "Post created"
@@ -61,6 +68,7 @@ buildPost post = post
     |> validateField #title nonEmpty
     |> validateField #body nonEmpty
     |> validateField #body isMarkdown
+    |> attachFailure #comments "Invalid comments!"
 
 isMarkdown :: Text -> ValidatorResult
 isMarkdown text =

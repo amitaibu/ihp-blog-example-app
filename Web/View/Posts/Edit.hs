@@ -1,7 +1,7 @@
 module Web.View.Posts.Edit where
 import Web.View.Prelude
 
-data EditView = EditView { post :: Post }
+data EditView = EditView { post :: Include "comments" Post }
 
 instance View EditView where
     html EditView { .. } = [hsx|
@@ -15,9 +15,12 @@ instance View EditView where
         {renderForm post}
     |]
 
-renderForm :: Post -> Html
+renderForm :: Include "comments" Post -> Html
 renderForm post = formFor post [hsx|
     {textField #title}
     {(textareaField #body) { helpText = "You can use Markdown here"} }
+
+    {textField #comments}
+
     {submitButton}
 |]
