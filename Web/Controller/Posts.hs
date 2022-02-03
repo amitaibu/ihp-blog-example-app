@@ -27,6 +27,7 @@ instance Controller PostsController where
 
     action EditPostAction { postId } = do
         post <- fetch postId
+            >>= fetchRelated #comments
         render EditView { .. }
 
     action UpdatePostAction { postId } = do
@@ -34,9 +35,12 @@ instance Controller PostsController where
         post
             |> buildPost
             |> ifValid \case
-                Left post -> render EditView { .. }
+                Left post -> do
+                    post <- post |> fetchRelated #comments
+                    render EditView { .. }
                 Right post -> do
                     post <- post |> updateRecord
+                        >>= fetchRelated #comments
                     setSuccessMessage "Post updated"
                     redirectTo EditPostAction { .. }
 
