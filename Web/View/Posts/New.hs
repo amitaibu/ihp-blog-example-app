@@ -1,7 +1,7 @@
 module Web.View.Posts.New where
 import Web.View.Prelude
 
-data NewView = NewView { post :: Post }
+data NewView = NewView { post :: Include "comments" Post }
 
 instance View NewView where
     html NewView { .. } = [hsx|
@@ -15,7 +15,7 @@ instance View NewView where
         {renderForm post}
     |]
 
-renderForm :: Post -> Html
+renderForm :: Include "comments" Post -> Html
 renderForm post = formFor post [hsx|
     {textField #title}
     {(textareaField #body) { helpText = "You can use Markdown here"} }
